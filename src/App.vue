@@ -1,26 +1,48 @@
 <template>
   <div id="app">
     <div class="files">
-      <p v-if="!isLoading">Pictures:</p>
-      <p v-else>Uploading...</p>
-      <button v-if="files.length > 0" type="button" @click="clearFiles">
-        Clear
-      </button>
-      <ul>
-        <li v-for="f in files" :key="`file-${f}`">{{ f }}</li>
-      </ul>
-      <form v-if="!isLoading" @submit.prevent="uploadFile">
-        <input
-          ref="fileInput"
-          type="file"
-          multiple
-          accept="image/x-png,image/jpeg"
-          @change="handleFileInput"
-        />
-        <button v-if="showUpload" type="submit">
-          Upload
-        </button>
-      </form>
+      <div class="pictures">
+        <label>Pictures:</label>
+        <ul class="list-group">
+          <li v-for="f in files" :key="`file-${f}`" class="list-group-item">
+            {{ f }}
+          </li>
+        </ul>
+        <div v-if="isLoading" class="progress">
+          <div
+            class="progress-bar progress-bar-striped active"
+            role="progressbar"
+            aria-valuenow="100"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            style="width: 100%"
+          ></div>
+        </div>
+        <div class="pictures--foot row">
+          <button
+            type="button"
+            @click="clearFiles"
+            class="btn btn-default col-xs-3 col-md-2"
+            :disabled="files.length <= 0"
+          >
+            Clear
+          </button>
+          <input
+            ref="fileInput"
+            class="form-control sr-only"
+            type="file"
+            multiple
+            accept="image/x-png,image/jpeg"
+            @change="handleFileInput"
+          />
+          <button
+            @click="$refs.fileInput.click()"
+            class="btn col-xs-3 col-xs-offset-6 col-md-2 col-md-offset-8"
+          >
+            Upload
+          </button>
+        </div>
+      </div>
     </div>
     <div class="code-editor">
       <form @submit.prevent="updateCss">
@@ -52,7 +74,6 @@ export default {
       code: "",
       files: [],
       isLoading: false,
-      showUpload: false,
     };
   },
   async created() {
@@ -84,18 +105,14 @@ export default {
     },
     handleFileInput(e) {
       if (e.target.files) {
-        // `my` prefix means local variable - this comment will be removed
-        this.myFiles = e.target.files;
-        this.showUpload = true;
-      } else {
-        this.showUpload = false;
+        this.uploadFile(e.target.files);
       }
     },
-    async uploadFile() {
+    async uploadFile(files) {
       this.isLoading = true;
-      console.log("files are", this.files);
+      console.log("files are", files);
       let formData = new FormData();
-      this.myFiles.forEach(file => {
+      files.forEach(file => {
         formData.append(file.name, file);
       });
       const res = await axios({
@@ -109,7 +126,6 @@ export default {
       if (res.status !== 200) {
         console.error(res.data);
       } else {
-        this.showUpload = false;
         await this.getFiles();
       }
     },
@@ -168,5 +184,10 @@ export default {
 .iframe-viewer > iframe {
   width: 100%;
   height: 100%;
+}
+.pictures {
+  .pictures--foot {
+    display: flex;
+  }
 }
 </style>
